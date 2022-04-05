@@ -5,7 +5,8 @@ build_script:
   - msbuild BinThumbnail.sln -p:Configuration=Release;Platform=x64
   - 7z a BinThumbnail.zip install.cmd uninstall.cmd BinThumbnail.dll
   - 7z rn BinThumbnail.zip install.cmd BinThumbnail\install.cmd uninstall.cmd BinThumbnail\uninstall.cmd BinThumbnail.dll BinThumbnail\BinThumbnail.dll
-  - sha1sum *.zip *.dll
+  - sha1sum *.zip *.dll x64/Release/TestBinThumbnail.exe
 
 artifacts:
   - path: 'BinThumbnail.zip'
+  - path: 'x64/Release/TestBinThumbnail.exe'
