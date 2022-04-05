@@ -9,29 +9,51 @@
 #include <stdio.h>
 #include <exception>
 #include <stdexcept>
+#include <regex>
 
 using namespace Microsoft::WRL;
 
 #pragma comment( lib, "Shlwapi.lib" )
 
-#define SUCC(hr) do { HRESULT hr_ = hr; if (FAILED(hr)) throw std::runtime_error(""); } while (0)
+void _throw_failed_hr(HRESULT hr, int line) {
 
-static int _main(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nShowCmd)
+	char buf[1024];
+
+	LPTSTR errorText = NULL;
+
+	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&errorText, 0, NULL);
+	if (NULL != errorText)
+	{
+		std::wstring err = std::regex_replace(std::wstring(errorText), std::wregex(L"[\\r\\n]"), L"");
+
+		sprintf_s(buf, "FAILED HRESULT at :%d %S (%x)", line, err.c_str(), hr);
+		LocalFree(errorText);
+	}
+	else
+	{
+		sprintf_s(buf, "FAILED HRESULT :%d %x", line, hr);
+	}
+
+	throw std::runtime_error(buf);
+}
+
+#define SUCC(hr) do { HRESULT hr_ = hr; if (FAILED(hr_)) _throw_failed_hr(hr_, __LINE__); } while (0)
+
+static int _main(int argc, wchar_t* argv[])
 {
 	wchar_t *userprofile;
 	_wdupenv_s(&userprofile, NULL, L"USERPROFILE");
-	int numArgs;
-	LPWSTR *args = CommandLineToArgvW(lpCmdLine, &numArgs);
 	std::wstring inputFilename;
-	if (wcslen(lpCmdLine)) {
-		inputFilename = *args;
+	if (argc > 1)
+	{
+		inputFilename = argv[1];
 	}
 	else
 	{
 		inputFilename = std::wstring(userprofile) + L"\\Google Drive\\SMW\\ExGraphics\\ExGFXBE.bin";
 	}
 	free(userprofile);
-	LocalFree(args);
 
 	HRESULT hr;
 	hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
@@ -81,14 +103,25 @@ static int _main(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine,
 			SUCC(hr);
 		}
 
+		DeleteObject(bmp);
 	}
 	CoUninitialize();
 
 	return 0;
 }
 
-extern "C" int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-	LPWSTR lpCmdLine, int nShowCmd)
+
+int wmain(int argc, wchar_t* argv[])
 {
-	return _main(hInstance, hPrevInstance, lpCmdLine, nShowCmd);
+	try
+	{
+		int ret = _main(argc, argv);
+		printf("Output is TestBinThumbnail_debug.bmp\n");
+		return ret;
+	}
+	catch (const std::exception& e) {
+		printf("%s\n", e.what());
+		fflush(stdout);
+		return -2;
+	}
 }
