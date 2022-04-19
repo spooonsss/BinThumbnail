@@ -17,6 +17,17 @@ Uninstall:
 reg delete HKCR\CLSID\{B630FF67-75A5-4A1E-860B-EC619BDC0E80} /f /reg:64
 reg delete HKCR\.bin\shellex\{E357FCCD-A995-4576-B01F-234630154E96} /f /reg:64
 
+https://docs.microsoft.com/en-us/windows/win32/shell/reg-shell-exts says we won't be loaded if this registry value is 1:
+HKEY_CURRENT_USER
+   Software
+      Microsoft
+         Windows
+            CurrentVersion
+               Policies
+                  Explorer
+                     EnforceShellExtensionSecurity = 1
+
+
 */
 
 #include <wrl.h>
