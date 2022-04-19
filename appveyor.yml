@@ -3,10 +3,16 @@ image: Visual Studio 2022
 build_script:
   - call "c:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
   - msbuild BinThumbnail.sln -p:Configuration=Release;Platform=x64
-  - 7z a BinThumbnail.zip install.cmd uninstall.cmd BinThumbnail.dll
-  - 7z rn BinThumbnail.zip install.cmd BinThumbnail\install.cmd uninstall.cmd BinThumbnail\uninstall.cmd BinThumbnail.dll BinThumbnail\BinThumbnail.dll
+  - msbuild BinThumbnail.sln -p:Configuration=Release;Platform=win32
+
+  - 7z a BinThumbnail.zip install.cmd uninstall.cmd BinThumbnail.dll BinThumbnail_32.dll
+  - 7z rn BinThumbnail.zip install.cmd BinThumbnail\install.cmd uninstall.cmd BinThumbnail\uninstall.cmd BinThumbnail.dll BinThumbnail\BinThumbnail.dll BinThumbnail_32.dll BinThumbnail\BinThumbnail_32.dll
   - sha1sum *.zip *.dll x64/Release/TestBinThumbnail.exe
 
 artifacts:
   - path: 'BinThumbnail.zip'
   - path: 'x64/Release/TestBinThumbnail.exe'
+  - path: '*.pdb'
+
+# cd C:\SMW\Graphics
+# C:\Users\spooonsss\Downloads\TestBinThumbnail.exe GFX00.bin
